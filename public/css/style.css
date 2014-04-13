@@ -1,0 +1,136 @@
+@import url('http://fonts.googleapis.com/css?family=Lato:300,400,700,900');
+
+body {
+	min-height: 100%;
+	font-family: Lato, sans-serif;
+	padding-top: 50px;
+	font-size: 16px;
+}
+
+section.featured {
+	background: #75B9B0;
+	padding: 60px 0;
+	overflow: hidden;
+	color: white;
+	font-style: normal;
+}
+
+section.featured p {
+	font-size: 16px;
+	line-height: 1.6em;
+	font-weight: 300;
+}
+
+section.featured h1.slogan {
+	font-size: 48px;
+	font-weight: 900;
+}
+
+a.navbar-brand {
+	font-size: 20px;
+	color: #EFEFEF;
+	font-weight: 700;
+}
+
+.icon-bar {
+	background: #FFF;
+}
+
+.navbar {
+	background-color: #3F5765;
+}
+
+.nav > li >a {
+	color: #EFEFEF;
+	font-size: 16px;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+}
+
+a, a:hover {
+	color: #E74C3C;
+}
+
+.nav > li > a:hover {
+	color: #E74C3C;
+	background: none;
+}
+
+.navbar .navbar-nav > .active > a {
+	color: #E74C3C;
+	background: #2B3A42;
+}
+
+.round {
+	border-radius: 50%;
+	max-width: 100%;
+	height: auto;
+}
+
+.member > img {
+	background: #EFEFEF;
+	border-radius: 50%;
+	width: 100%;
+	max-width: 192px;
+	height: auto;
+}
+
+.section {
+	padding: 40px 0 20px;
+	overflow: hidden;
+}
+
+.row.equal {
+	display: table;
+}
+
+.row.equal > [class*="col-"] {
+	float: none;
+	display: table-cell;
+	vertical-align: top;
+}
+
+@media (max-width: 768px) {
+	.row.equal {
+		display: block;
+	}
+
+	.row.equal > [class*="col-"] {
+		display: block;
+	}
+}
+
+#team {
+	background: #F9F9F9;
+	border-top: 1px solid #eee;
+}
+
+#team h2 {
+	font-weight: bold;
+	font-size: 28px;
+}
+
+#footer {
+	background: #1E1E20;
+	color: #FFF;
+	font-size: 14px;
+}
+
+#footer a {
+	color: #E74C3C;
+	display: inline-block;
+	margin: 0 6px;
+}
+
+#footer .fa {
+	color: #FFF;
+}
+
+#intro p {
+	color: #777;
+}
+
+#intro h3 {
+	font-weight: 900;
+	font-size: 16px;
+}
