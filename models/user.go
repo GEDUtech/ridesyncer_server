@@ -4,6 +4,10 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"github.com/jinzhu/gorm"
+	"github.com/martini-contrib/binding"
+	mrand "math/rand"
+	"ridesyncer/auth"
+	"strconv"
 	"time"
 )
 
@@ -20,6 +24,73 @@ type User struct {
 	Token            string `form:"token"`
 	authenticated    bool   `sql:"-" form:"-"`
 	CreatedAt        time.Time
+}
+
+func (user *User) ValidateUniqueUsername(db gorm.DB, errors *binding.Errors) error {
+	var count int
+	query := db.Model(User{}).Where(&User{Username: user.Username}).Count(&count)
+	if query.Error != nil {
+		return query.Error
+	}
+
+	if count > 0 {
+		errors.Fields["username"] = "Username already taken"
+	}
+
+	return nil
+}
+
+func (user *User) Validate(db gorm.DB, errors *binding.Errors) error {
+	validation := newValidation(errors)
+
+	if validation.Between("username", user.Username, 6, 16) {
+		if err := user.ValidateUniqueUsername(db, errors); err != nil {
+			return err
+		}
+	}
+
+	validation.Between("password", user.Password, 6, 16)
+	validation.NotEmpty("first_name", user.FirstName)
+	validation.NotEmpty("last_name", user.LastName)
+
+	if validation.NotEmpty("email", user.Email) {
+		validation.Email("email", user.Email)
+	}
+	validation.NotEmpty("ride", user.Ride)
+
+	return nil
+}
+
+func (user *User) Register(db gorm.DB) error {
+	var err error
+	user.VerificationCode, err = GenerateVerificationCode(db)
+	if err != nil {
+		return err
+	}
+
+	user.Password = auth.NewBcryptHasher().Hash(user.Password)
+	user.CreatedAt = time.Now()
+
+	return db.Save(user).Error
+}
+
+func (user *User) SetAuthenticated(authenticated bool) {
+	user.authenticated = authenticated
+}
+
+func (user *User) IsAuthenticated() bool {
+	return user.authenticated
+}
+
+func GetUserByToken(db gorm.DB, token string) (user User, err error) {
+	err = db.Find(&user, User{Token: token}).Error
+	return
+}
+
+func GetUserByUsername(db gorm.DB, username string) (user *User, err error) {
+	user = new(User)
+	err = db.Find(user, User{Username: username}).Error
+	return
 }
 
 func GenerateApiToken(db gorm.DB) (string, error) {
@@ -44,21 +115,18 @@ func GenerateApiToken(db gorm.DB) (string, error) {
 	}
 }
 
-func (user *User) SetAuthenticated(authenticated bool) {
-	user.authenticated = authenticated
-}
+func GenerateVerificationCode(db gorm.DB) (string, error) {
+	mrand.Seed(time.Now().UnixNano())
+	for {
+		min := 100000000
+		max := 999999999
+		code := strconv.Itoa(mrand.Int()%(max-min) + min)
 
-func (user *User) IsAuthenticated() bool {
-	return user.authenticated
-}
+		var count int
+		query := db.Model(&User{}).Where(&User{VerificationCode: code}).Count(&count)
 
-func GetUserByToken(db gorm.DB, token string) (user User, err error) {
-	err = db.Find(&user, User{Token: token}).Error
-	return
-}
-
-func GetUserByUsername(db gorm.DB, username string) (user *User, err error) {
-	user = new(User)
-	err = db.Find(user, User{Username: username}).Error
-	return
+		if query.Error != nil || count == 0 {
+			return code, query.Error
+		}
+	}
 }
