@@ -44,6 +44,19 @@ func GenerateApiToken(db gorm.DB) (string, error) {
 	}
 }
 
+func (user *User) SetAuthenticated(authenticated bool) {
+	user.authenticated = authenticated
+}
+
+func (user *User) IsAuthenticated() bool {
+	return user.authenticated
+}
+
+func GetUserByToken(db gorm.DB, token string) (user User, err error) {
+	err = db.Find(&user, User{Token: token}).Error
+	return
+}
+
 func GetUserByUsername(db gorm.DB, username string) (user *User, err error) {
 	user = new(User)
 	err = db.Find(user, User{Username: username}).Error

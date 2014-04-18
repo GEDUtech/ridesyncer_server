@@ -33,6 +33,7 @@ func main() {
 	// Setup middleware
 	m.Use(martini.Static("public"))
 	m.Use(render.Renderer())
+	m.Use(api.AuthenticateUser)
 
 	// Create controllers
 	pages := controllers.PagesController{}
