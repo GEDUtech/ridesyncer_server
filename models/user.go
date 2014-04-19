@@ -26,7 +26,7 @@ type User struct {
 	CreatedAt        time.Time
 }
 
-func (user *User) ValidateUniqueUsername(db gorm.DB, errors *binding.Errors) error {
+func (user *User) ValidateUniqueUsername(db *gorm.DB, errors *binding.Errors) error {
 	var count int
 	query := db.Model(User{}).Where(&User{Username: user.Username}).Count(&count)
 	if query.Error != nil {
@@ -40,7 +40,7 @@ func (user *User) ValidateUniqueUsername(db gorm.DB, errors *binding.Errors) err
 	return nil
 }
 
-func (user *User) Validate(db gorm.DB, errors *binding.Errors) error {
+func (user *User) Validate(db *gorm.DB, errors *binding.Errors) error {
 	validation := newValidation(errors)
 
 	if validation.Between("username", user.Username, 6, 16) {
@@ -61,7 +61,7 @@ func (user *User) Validate(db gorm.DB, errors *binding.Errors) error {
 	return nil
 }
 
-func (user *User) Register(db gorm.DB) error {
+func (user *User) Register(db *gorm.DB) error {
 	var err error
 	user.VerificationCode, err = GenerateVerificationCode(db)
 	if err != nil {
@@ -82,18 +82,18 @@ func (user *User) IsAuthenticated() bool {
 	return user.authenticated
 }
 
-func GetUserByToken(db gorm.DB, token string) (user User, err error) {
+func GetUserByToken(db *gorm.DB, token string) (user User, err error) {
 	err = db.Find(&user, User{Token: token}).Error
 	return
 }
 
-func GetUserByUsername(db gorm.DB, username string) (user *User, err error) {
+func GetUserByUsername(db *gorm.DB, username string) (user *User, err error) {
 	user = new(User)
 	err = db.Find(user, User{Username: username}).Error
 	return
 }
 
-func GenerateApiToken(db gorm.DB) (string, error) {
+func GenerateApiToken(db *gorm.DB) (string, error) {
 	for {
 		size := 20
 		randomBytes := make([]byte, size)
@@ -115,7 +115,7 @@ func GenerateApiToken(db gorm.DB) (string, error) {
 	}
 }
 
-func GenerateVerificationCode(db gorm.DB) (string, error) {
+func GenerateVerificationCode(db *gorm.DB) (string, error) {
 	mrand.Seed(time.Now().UnixNano())
 	for {
 		min := 100000000

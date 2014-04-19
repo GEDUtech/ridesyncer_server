@@ -16,17 +16,17 @@ import (
 	"ridesyncer/net/email"
 )
 
-func setupDb(m *martini.ClassicMartini) {
+func setupDb(m *martini.ClassicMartini) *gorm.DB {
 	db, err := gorm.Open("mysql", os.Getenv("RIDESYNCER_DB_SOURCE"))
 
 	if err != nil {
 		panic(fmt.Sprintf("Could not connect to database: %s", err))
 	}
 
-	m.Map(db)
+	return &db
 }
 
-func setupEmail(m *martini.ClassicMartini) {
+func setupEmail(m *martini.ClassicMartini) *email.Config {
 	emailConfig, err := email.NewConfig(
 		os.Getenv("RIDESYNCER_EMAIL_USERNAME"),
 		os.Getenv("RIDESYNCER_EMAIL_PASSWORD"),
@@ -37,7 +37,7 @@ func setupEmail(m *martini.ClassicMartini) {
 		panic(err)
 	}
 
-	m.Map(emailConfig)
+	return emailConfig
 }
 
 func main() {
@@ -45,19 +45,19 @@ func main() {
 	m := martini.Classic()
 
 	// Setup database connection
-	setupDb(m)
+	db := setupDb(m)
 
 	// Setup email configuration
-	setupEmail(m)
+	emailConfig := setupEmail(m)
 
 	// Setup middleware
 	m.Use(martini.Static("public"))
 	m.Use(render.Renderer())
-	m.Use(api.AuthenticateUser)
+	m.Use(api.AuthenticateUser(db))
 
 	// Create controllers
 	pages := controllers.PagesController{}
-	apiUsers := api.Users{}
+	apiUsers := api.NewUsers(db, emailConfig)
 
 	// Routing
 	m.Get("/", pages.Home)

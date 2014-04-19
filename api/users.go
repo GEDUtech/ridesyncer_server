@@ -17,10 +17,17 @@ var (
 	emailTemplate *template.Template
 )
 
-type Users struct{}
+type Users struct {
+	db          *gorm.DB
+	emailConfig *email.Config
+}
 
-func (this *Users) Login(req *http.Request, db gorm.DB, render render.Render) {
-	user, err := models.GetUserByUsername(db, req.FormValue("username"))
+func NewUsers(db *gorm.DB, emailConfig *email.Config) Users {
+	return Users{db, emailConfig}
+}
+
+func (this *Users) Login(req *http.Request, render render.Render) {
+	user, err := models.GetUserByUsername(this.db, req.FormValue("username"))
 
 	if err != nil {
 		switch err {
@@ -37,14 +44,14 @@ func (this *Users) Login(req *http.Request, db gorm.DB, render render.Render) {
 		return
 	}
 
-	token, err := models.GenerateApiToken(db)
+	token, err := models.GenerateApiToken(this.db)
 	if err != nil {
 		render.Error(500) // Shouldn't happen
 		return
 	}
 
 	user.Token = token
-	if db.Model(user).UpdateColumn("token", token).Error != nil {
+	if this.db.Model(user).UpdateColumn("token", token).Error != nil {
 		render.Error(500) // Shouldn't happen
 		return
 	}
@@ -53,8 +60,8 @@ func (this *Users) Login(req *http.Request, db gorm.DB, render render.Render) {
 	render.JSON(200, user)
 }
 
-func (this *Users) Register(emailConfig *email.Config, db gorm.DB, user models.RegisterUser, validationErrors binding.Errors, render render.Render) {
-	if err := user.Validate(db, &validationErrors); err != nil {
+func (this *Users) Register(user models.RegisterUser, validationErrors binding.Errors, render render.Render) {
+	if err := user.Validate(this.db, &validationErrors); err != nil {
 		render.JSON(500, err)
 		return
 	}
@@ -64,15 +71,15 @@ func (this *Users) Register(emailConfig *email.Config, db gorm.DB, user models.R
 		return
 	}
 
-	if err := user.Register(db); err != nil {
+	if err := user.Register(this.db); err != nil {
 		render.JSON(500, err)
 		return
 	}
 
-	go sendVerificationCode(emailConfig, user.User)
+	go this.sendVerificationCode(user.User)
 }
 
-func sendVerificationCode(emailConfig *email.Config, user models.User) error {
+func (this *Users) sendVerificationCode(user models.User) error {
 	subject := "Subject: Verification Code\n"
 	mime := "MIME-version: 1.0;\n"
 	contentType := `Content-Type: text/html; charset="UTF-8";`
@@ -87,7 +94,8 @@ func sendVerificationCode(emailConfig *email.Config, user models.User) error {
 	}
 	emailTemplate.Execute(buffer, viewData)
 
-	return smtp.SendMail(emailConfig.Addr, emailConfig.Auth, "RideSyncer", []string{user.Email}, buffer.Bytes())
+	return smtp.SendMail(this.emailConfig.Addr, this.emailConfig.Auth, "RideSyncer",
+		[]string{user.Email}, buffer.Bytes())
 }
 
 func init() {
