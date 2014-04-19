@@ -22,7 +22,6 @@ type User struct {
 	VerificationCode string
 	Ride             string `form:"ride"`
 	Token            string `form:"token"`
-	authenticated    bool   `sql:"-" form:"-"`
 	CreatedAt        time.Time
 }
 
@@ -72,14 +71,6 @@ func (user *User) Register(db *gorm.DB) error {
 	user.CreatedAt = time.Now()
 
 	return db.Save(user).Error
-}
-
-func (user *User) SetAuthenticated(authenticated bool) {
-	user.authenticated = authenticated
-}
-
-func (user *User) IsAuthenticated() bool {
-	return user.authenticated
 }
 
 func GetUserByToken(db *gorm.DB, token string) (user User, err error) {

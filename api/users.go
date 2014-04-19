@@ -79,6 +79,28 @@ func (this *Users) Register(user models.RegisterUser, validationErrors binding.E
 	go this.sendVerificationCode(user.User)
 }
 
+func (this *Users) Verify(req *http.Request, authUser models.AuthUser, render render.Render) {
+	if authUser.EmailVerified {
+		render.Error(422)
+		return
+	}
+
+	verificationCode := req.FormValue("VerificationCode")
+	if authUser.VerificationCode != verificationCode {
+		render.Error(400)
+		return
+	}
+
+	query := this.db.Model(&authUser.User).Updates(map[string]interface{}{
+		"email_verified":    true,
+		"verification_code": "",
+	})
+
+	if query.Error != nil {
+		render.Error(500)
+	}
+}
+
 func (this *Users) sendVerificationCode(user models.User) error {
 	subject := "Subject: Verification Code\n"
 	mime := "MIME-version: 1.0;\n"

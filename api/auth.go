@@ -12,29 +12,27 @@ const ApiTokenHeaderKey = "X-API-TOKEN"
 func AuthenticateUser(db *gorm.DB) martini.Handler {
 	return func(req *http.Request, c martini.Context) {
 		token := req.Header.Get(ApiTokenHeaderKey)
-		var user models.User
+		var authUser models.AuthUser
 		if token != "" {
 			var err error
-			if user, err = models.GetUserByToken(db, token); err == nil {
-				if user.EmailVerified {
-					user.SetAuthenticated(true)
-				}
+			if authUser.User, err = models.GetUserByToken(db, token); err == nil {
+				authUser.SetAuthenticated(true)
 			}
 		}
-		c.Map(user)
+		c.Map(authUser)
 	}
 }
 
 // Makes sure a user attempting request exists
-func TokenRequired(res http.ResponseWriter, req *http.Request, user models.User) {
-	if user.Id == 0 {
+func TokenRequired(res http.ResponseWriter, req *http.Request, authUser models.AuthUser) {
+	if !authUser.IsAuthenticated() {
 		unauthorized(res)
 	}
 }
 
 // Makes sure the user exists and is verified
-func Authenticated(res http.ResponseWriter, user models.User) {
-	if !user.IsAuthenticated() {
+func Authenticated(res http.ResponseWriter, authUser models.AuthUser) {
+	if !authUser.IsAuthenticated() || !authUser.EmailVerified {
 		unauthorized(res)
 	}
 }
