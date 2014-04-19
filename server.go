@@ -65,7 +65,7 @@ func main() {
 	m.Group("/api/users", func(r martini.Router) {
 		r.Post("/login", apiUsers.Login)
 		r.Post("/register", binding.Form(models.RegisterUser{}), apiUsers.Register)
-		r.Post("/verify", api.TokenRequired, apiUsers.Verify)
+		r.Post("/verify", api.NeedsAuth(false), apiUsers.Verify)
 	})
 
 	// Start server

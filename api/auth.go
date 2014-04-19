@@ -23,20 +23,11 @@ func AuthenticateUser(db *gorm.DB) martini.Handler {
 	}
 }
 
-// Makes sure a user attempting request exists
-func TokenRequired(res http.ResponseWriter, req *http.Request, authUser models.AuthUser) {
-	if !authUser.IsAuthenticated() {
-		unauthorized(res)
+// Makes sure an authUser is authenticated and optionally verified
+func NeedsAuth(checkVerified bool) martini.Handler {
+	return func(res http.ResponseWriter, authUser models.AuthUser) {
+		if !authUser.IsAuthenticated() || (checkVerified && !authUser.EmailVerified) {
+			http.Error(res, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		}
 	}
-}
-
-// Makes sure the user exists and is verified
-func Authenticated(res http.ResponseWriter, authUser models.AuthUser) {
-	if !authUser.IsAuthenticated() || !authUser.EmailVerified {
-		unauthorized(res)
-	}
-}
-
-func unauthorized(res http.ResponseWriter) {
-	http.Error(res, "Not Authorized", http.StatusUnauthorized)
 }
