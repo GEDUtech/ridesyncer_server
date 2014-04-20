@@ -11,6 +11,7 @@ import (
 	"ridesyncer/auth"
 	"ridesyncer/models"
 	"ridesyncer/net/email"
+	"ridesyncer/utils"
 )
 
 var (
@@ -26,68 +27,68 @@ func NewUsers(db *gorm.DB, emailConfig *email.Config) Users {
 	return Users{db, emailConfig}
 }
 
-func (this *Users) Login(req *http.Request, render render.Render) {
+func (this *Users) Login(res http.ResponseWriter, req *http.Request, render render.Render) {
 	user, err := models.GetUserByUsername(this.db, req.FormValue("username"))
 
 	if err != nil {
 		switch err {
 		case gorm.RecordNotFound:
-			render.Error(401) // Not authorized (invalid login)
+			utils.HttpError(res, http.StatusUnauthorized)
 		default:
-			render.Error(500) // Shouldn't happen
+			utils.HttpError(res, http.StatusInternalServerError)
 		}
 		return
 	}
 
 	if auth.NewBcryptHasher().Check(user.Password, req.FormValue("password")) != nil {
-		render.Error(401) // Not authorized (invalid password)
+		utils.HttpError(res, http.StatusUnauthorized)
 		return
 	}
 
 	token, err := models.GenerateApiToken(this.db)
 	if err != nil {
-		render.Error(500) // Shouldn't happen
+		utils.HttpError(res, http.StatusInternalServerError)
 		return
 	}
 
 	user.Token = token
 	if this.db.Model(user).UpdateColumn("token", token).Error != nil {
-		render.Error(500) // Shouldn't happen
+		utils.HttpError(res, http.StatusInternalServerError)
 		return
 	}
 
 	user.Password = ""
-	render.JSON(200, user)
+	render.JSON(http.StatusOK, user)
 }
 
-func (this *Users) Register(user models.RegisterUser, validationErrors binding.Errors, render render.Render) {
-	if err := user.Validate(this.db, &validationErrors); err != nil {
-		render.JSON(500, err)
+func (this *Users) Register(res http.ResponseWriter, user models.RegisterUser, errors binding.Errors, render render.Render) {
+	if err := user.Validate(this.db, &errors); err != nil {
+		utils.HttpError(res, http.StatusInternalServerError)
 		return
 	}
 
-	if validationErrors.Count() > 0 {
-		render.JSON(400, map[string]binding.Errors{"errors": validationErrors})
+	if errors.Count() > 0 {
+		render.JSON(http.StatusBadRequest, map[string]binding.Errors{"errors": errors})
 		return
 	}
 
 	if err := user.Register(this.db); err != nil {
-		render.JSON(500, err)
+		utils.HttpError(res, http.StatusInternalServerError)
 		return
 	}
 
 	go this.sendVerificationCode(user.User)
 }
 
-func (this *Users) Verify(req *http.Request, authUser models.AuthUser, render render.Render) {
+func (this *Users) Verify(res http.ResponseWriter, req *http.Request, authUser models.AuthUser, render render.Render) {
 	if authUser.EmailVerified {
-		render.Error(422)
+		utils.HttpError(res, 422)
 		return
 	}
 
 	verificationCode := req.FormValue("VerificationCode")
 	if authUser.VerificationCode != verificationCode {
-		render.Error(400)
+		utils.HttpError(res, http.StatusBadRequest)
 		return
 	}
 
@@ -97,7 +98,7 @@ func (this *Users) Verify(req *http.Request, authUser models.AuthUser, render re
 	})
 
 	if query.Error != nil {
-		render.Error(500)
+		utils.HttpError(res, http.StatusInternalServerError)
 	}
 }
 
