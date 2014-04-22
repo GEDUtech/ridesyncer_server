@@ -12,16 +12,16 @@ import (
 )
 
 type User struct {
-	Id               int64  `form:"id"`
-	Username         string `form:"username"`
-	Password         string `form:"password"`
-	FirstName        string `form:"first_name"`
-	LastName         string `form:"last_name"`
-	Email            string `form:"email"`
+	Id               int64  `form:"Id"`
+	Username         string `form:"Username"`
+	Password         string `form:"Password"`
+	FirstName        string `form:"FirstName"`
+	LastName         string `form:"LastName"`
+	Email            string `form:"Email"`
 	EmailVerified    bool
 	VerificationCode string
-	Ride             string `form:"ride"`
-	Token            string `form:"token"`
+	Ride             string `form:"Ride"`
+	Token            string
 	CreatedAt        time.Time
 }
 

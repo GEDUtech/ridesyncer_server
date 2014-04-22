@@ -8,7 +8,7 @@ import (
 type RegisterUser struct {
 	User
 
-	RepeatPassword string `sql:"-" form:"repeat_password"`
+	RepeatPassword string `form:"RepeatPassword"`
 }
 
 func (registerUser *RegisterUser) Validate(db *gorm.DB, errors *binding.Errors) error {
