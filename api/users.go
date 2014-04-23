@@ -7,7 +7,6 @@ import (
 	"github.com/martini-contrib/render"
 	"html/template"
 	"net/http"
-	"net/smtp"
 	"ridesyncer/auth"
 	"ridesyncer/models"
 	"ridesyncer/net/email"
@@ -28,8 +27,13 @@ func NewUsers(db *gorm.DB, emailConfig *email.Config) Users {
 }
 
 func (this *Users) Login(res http.ResponseWriter, req *http.Request, render render.Render) {
-	user, err := models.GetUserByUsername(this.db, req.FormValue("username"))
+	var data struct{ Username, Password string }
 
+	if decode(req, render, &data) != nil {
+		return
+	}
+
+	user, err := models.GetUserByUsername(this.db, data.Username)
 	if err != nil {
 		switch err {
 		case gorm.RecordNotFound:
@@ -40,7 +44,7 @@ func (this *Users) Login(res http.ResponseWriter, req *http.Request, render rend
 		return
 	}
 
-	if auth.NewBcryptHasher().Check(user.Password, req.FormValue("password")) != nil {
+	if auth.NewBcryptHasher().Check(user.Password, data.Password) != nil {
 		utils.HttpError(res, http.StatusUnauthorized)
 		return
 	}
@@ -61,7 +65,13 @@ func (this *Users) Login(res http.ResponseWriter, req *http.Request, render rend
 	render.JSON(http.StatusOK, user)
 }
 
-func (this *Users) Register(res http.ResponseWriter, user models.RegisterUser, errors binding.Errors, render render.Render) {
+func (this *Users) Register(res http.ResponseWriter, req *http.Request, render render.Render) {
+	var user models.RegisterUser
+	if decode(req, render, &user) != nil {
+		return
+	}
+
+	errors := binding.Errors{make(map[string]string), make(map[string]string)}
 	if err := user.Validate(this.db, &errors); err != nil {
 		utils.HttpError(res, http.StatusInternalServerError)
 		return
@@ -86,8 +96,12 @@ func (this *Users) Verify(res http.ResponseWriter, req *http.Request, authUser m
 		return
 	}
 
-	verificationCode := req.FormValue("VerificationCode")
-	if authUser.VerificationCode != verificationCode {
+	var data struct{ VerificationCode string }
+	if decode(req, render, &data) != nil {
+		return
+	}
+
+	if authUser.VerificationCode != data.VerificationCode {
 		utils.HttpError(res, http.StatusBadRequest)
 		return
 	}
@@ -103,11 +117,7 @@ func (this *Users) Verify(res http.ResponseWriter, req *http.Request, authUser m
 }
 
 func (this *Users) sendVerificationCode(user models.User) error {
-	subject := "Subject: Verification Code\n"
-	mime := "MIME-version: 1.0;\n"
-	contentType := `Content-Type: text/html; charset="UTF-8";`
-
-	buffer := bytes.NewBufferString(subject + mime + contentType + "\n\n")
+	var buffer bytes.Buffer
 	viewData := map[string]string{
 		"FirstName": user.FirstName,
 		"LastName":  user.LastName,
@@ -115,10 +125,17 @@ func (this *Users) sendVerificationCode(user models.User) error {
 		"V2":        user.VerificationCode[3:6],
 		"V3":        user.VerificationCode[6:9],
 	}
-	emailTemplate.Execute(buffer, viewData)
+	err := emailTemplate.Execute(&buffer, viewData)
 
-	return smtp.SendMail(this.emailConfig.Addr, this.emailConfig.Auth, "RideSyncer",
-		[]string{user.Email}, buffer.Bytes())
+	if err != nil {
+		return err
+	}
+
+	return email.NewMailer(this.emailConfig).
+		AddTo(user.Email).
+		SetSubject("Verification Code").
+		SetCharset("UTF-8").
+		Send(buffer.String())
 }
 
 func init() {

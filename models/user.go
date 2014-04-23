@@ -12,15 +12,15 @@ import (
 )
 
 type User struct {
-	Id               int64  `form:"Id"`
-	Username         string `form:"Username"`
-	Password         string `form:"Password"`
-	FirstName        string `form:"FirstName"`
-	LastName         string `form:"LastName"`
-	Email            string `form:"Email"`
+	Id               int64
+	Username         string
+	Password         string
+	FirstName        string
+	LastName         string
+	Email            string
 	EmailVerified    bool
 	VerificationCode string
-	Ride             string `form:"Ride"`
+	Ride             string
 	Token            string
 	CreatedAt        time.Time
 }
