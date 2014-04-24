@@ -21,7 +21,13 @@ type User struct {
 	EmailVerified    bool
 	VerificationCode string
 	Ride             string
+	Address          string
+	City             string
+	State            string
+	Zip              string
 	Token            string
+	Lat              float64 `json:"-"`
+	Lng              float64 `json:"-"`
 	CreatedAt        time.Time
 }
 
