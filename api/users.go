@@ -87,6 +87,21 @@ func (this *Users) Register(res http.ResponseWriter, req *http.Request, render r
 		return
 	}
 
+	token, err := models.GenerateApiToken(this.db)
+	if err != nil {
+		utils.HttpError(res, http.StatusInternalServerError)
+		return
+	}
+
+	user.Token = token
+	if this.db.Model(user.User).UpdateColumn("token", token).Error != nil {
+		utils.HttpError(res, http.StatusInternalServerError)
+		return
+	}
+
+	user.Password = ""
+	render.JSON(http.StatusOK, user)
+
 	go this.sendVerificationCode(user.User)
 }
 
