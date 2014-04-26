@@ -10,8 +10,8 @@ type Schedule struct {
 	Id      int64
 	UserId  int64
 	Weekday time.Weekday
-	Start   time.Time
-	End     time.Time
+	Start   string
+	End     string
 }
 
 func (s Schedule) Validate(db *gorm.DB, errors *binding.Errors) error {
@@ -24,24 +24,28 @@ func (s Schedule) Validate(db *gorm.DB, errors *binding.Errors) error {
 	}
 
 	validTimes := true
-	if s.Start.IsZero() {
+
+	start, _ := time.Parse("15:04:05", s.Start)
+	end, _ := time.Parse("15:04:05", s.End)
+
+	if start.IsZero() {
 		errors.Fields["Start"] = "Invalid time"
 		validTimes = false
 	}
-	if s.End.IsZero() {
+	if end.IsZero() {
 		errors.Fields["End"] = "Invalid time"
 		validTimes = false
 	}
 
-	if validTimes && s.Start.After(s.End) {
+	if validTimes && start.After(end) {
 		errors.Fields["Start"] = "Start time is after end time"
 		validTimes = false
 	}
 
-	if validTimes {
+	if validTimes && s.UserId != 0 {
 		var count int
 		query := db.Model(&Schedule{}).
-			Where("weekday = ? AND (start >= ? OR end <= ?)", s.Weekday, s.End, s.Start).
+			Where("user_id = ? AND weekday = ? AND (start >= ? OR end <= ?)", s.UserId, int(s.Weekday), s.Start, s.End).
 			Count(&count)
 
 		if query.Error != nil {
