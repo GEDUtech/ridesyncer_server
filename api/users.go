@@ -62,6 +62,11 @@ func (this *Users) Login(res http.ResponseWriter, req *http.Request, render rend
 	}
 
 	user.Password = ""
+
+	if user.FetchSchedules(this.db) != nil {
+		utils.HttpError(res, http.StatusInternalServerError)
+	}
+
 	render.JSON(http.StatusOK, user)
 }
 

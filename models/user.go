@@ -29,6 +29,12 @@ type User struct {
 	Lat              float64 `json:"-"`
 	Lng              float64 `json:"-"`
 	CreatedAt        time.Time
+
+	Schedules []Schedule `sql:"-"`
+}
+
+func (user *User) FetchSchedules(db *gorm.DB) error {
+	return db.Model(user).Related(&user.Schedules).Error
 }
 
 func (user *User) ValidateUniqueUsername(db *gorm.DB, errors *binding.Errors) error {
