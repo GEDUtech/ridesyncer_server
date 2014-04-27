@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"net/http"
 	"ridesyncer/auth"
+	"ridesyncer/collections"
 	"ridesyncer/models"
 	"ridesyncer/net/email"
 	"ridesyncer/utils"
@@ -134,6 +135,15 @@ func (this *Users) Verify(res http.ResponseWriter, req *http.Request, authUser m
 	if query.Error != nil {
 		utils.HttpError(res, http.StatusInternalServerError)
 	}
+}
+
+func (this *Users) Search(res http.ResponseWriter, authUser models.AuthUser, render render.Render) {
+	users, err := collections.FindMatches(this.db, authUser.User)
+	if err != nil {
+		utils.HttpError(res, http.StatusInternalServerError)
+		return
+	}
+	render.JSON(http.StatusOK, users)
 }
 
 func (this *Users) sendVerificationCode(user models.User) error {

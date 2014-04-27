@@ -67,6 +67,7 @@ func main() {
 		r.Post("/login", apiUsers.Login)
 		r.Post("/register", binding.Form(models.RegisterUser{}), apiUsers.Register)
 		r.Post("/verify", api.NeedsAuth(false), apiUsers.Verify)
+		r.Get("/search", api.NeedsAuth(true), apiUsers.Search)
 	})
 
 	m.Group("/api/schedules", func(r martini.Router) {

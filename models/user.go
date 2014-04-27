@@ -14,21 +14,23 @@ import (
 type User struct {
 	Id               int64
 	Username         string
-	Password         string
+	Password         string `json:",omitempty"`
 	FirstName        string
 	LastName         string
 	Email            string
-	EmailVerified    bool
-	VerificationCode string
+	EmailVerified    bool   `json:",omitempty"`
+	VerificationCode string `json:",omitempty"`
 	Ride             string
-	Address          string
-	City             string
-	State            string
-	Zip              string
-	Token            string
+	Address          string  `json:",omitempty"`
+	City             string  `json:",omitempty"`
+	State            string  `json:",omitempty"`
+	Zip              string  `json:",omitempty"`
+	Token            string  `json:",omitempty"`
+	Buffer           int     `json:",omitempty"`
 	Lat              float64 `json:"-"`
 	Lng              float64 `json:"-"`
 	CreatedAt        time.Time
+	Distance         float64
 
 	Schedules []Schedule `sql:"-"`
 }
