@@ -18,7 +18,7 @@ type User struct {
 	FirstName        string
 	LastName         string
 	Email            string
-	EmailVerified    bool   `json:",omitempty"`
+	EmailVerified    bool
 	VerificationCode string `json:",omitempty"`
 	Ride             string
 	Address          string  `json:",omitempty"`
