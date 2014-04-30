@@ -163,6 +163,7 @@ func (this *Users) sendVerificationCode(user models.User) error {
 
 	return email.NewMailer(this.emailConfig).
 		AddTo(user.Email).
+		SetContentType("text/html").
 		SetSubject("Verification Code").
 		SetCharset("UTF-8").
 		Send(buffer.String())

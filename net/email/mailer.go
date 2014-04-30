@@ -40,7 +40,7 @@ func (m *Mailer) SetCharset(charset string) *Mailer {
 }
 
 func (m *Mailer) Send(body string) error {
-	content := fmt.Sprintf(`Subject: %s\nMIME-version: 1.0;\nContent-Type: %s; charset="%s"\n\n%s`,
+	content := fmt.Sprintf("Subject: %s\nMIME-version: 1.0;\nContent-Type: %s; charset=\"%s\"\n\n%s",
 		m.Subject, m.ContentType, m.Charset, body)
 	return smtp.SendMail(m.Config.Addr, m.Config.Auth, "RideSyncer", m.To, []byte(content))
 }
