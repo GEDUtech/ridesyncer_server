@@ -30,7 +30,7 @@ type User struct {
 	Lat              float64 `json:"-"`
 	Lng              float64 `json:"-"`
 	CreatedAt        time.Time
-	Distance         float64
+	Distance         float64 `sql:"-"`
 
 	Schedules []Schedule `sql:"-"`
 }
