@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"github.com/jinzhu/gorm"
-	"github.com/martini-contrib/binding"
 	mrand "math/rand"
 	"ridesyncer/auth"
 	"strconv"
@@ -39,7 +38,7 @@ func (user *User) FetchSchedules(db *gorm.DB) error {
 	return db.Model(user).Related(&user.Schedules).Error
 }
 
-func (user *User) ValidateUniqueUsername(db *gorm.DB, errors *binding.Errors) error {
+func (user *User) ValidateUniqueUsername(db *gorm.DB, errors *Errors) error {
 	var count int
 	query := db.Model(User{}).Where(&User{Username: user.Username}).Count(&count)
 	if query.Error != nil {
@@ -53,7 +52,7 @@ func (user *User) ValidateUniqueUsername(db *gorm.DB, errors *binding.Errors) er
 	return nil
 }
 
-func (user *User) Validate(db *gorm.DB, errors *binding.Errors) error {
+func (user *User) Validate(db *gorm.DB, errors *Errors) error {
 	validation := newValidation(errors)
 
 	if validation.Between("username", user.Username, 6, 16) {

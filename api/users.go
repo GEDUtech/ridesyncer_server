@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"github.com/jinzhu/gorm"
-	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
 	"html/template"
 	"net/http"
@@ -77,14 +76,14 @@ func (this *Users) Register(res http.ResponseWriter, req *http.Request, render r
 		return
 	}
 
-	errors := binding.Errors{make(map[string]string), make(map[string]string)}
-	if err := user.Validate(this.db, &errors); err != nil {
+	errors := models.NewErrors()
+	if err := user.Validate(this.db, errors); err != nil {
 		utils.HttpError(res, http.StatusInternalServerError)
 		return
 	}
 
 	if errors.Count() > 0 {
-		render.JSON(http.StatusBadRequest, map[string]binding.Errors{"errors": errors})
+		render.JSON(http.StatusBadRequest, map[string]*models.Errors{"errors": errors})
 		return
 	}
 

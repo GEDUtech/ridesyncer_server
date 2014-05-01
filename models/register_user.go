@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/martini-contrib/binding"
 )
 
 type RegisterUser struct {
@@ -11,7 +10,7 @@ type RegisterUser struct {
 	RepeatPassword string `form:"RepeatPassword"`
 }
 
-func (registerUser *RegisterUser) Validate(db *gorm.DB, errors *binding.Errors) error {
+func (registerUser *RegisterUser) Validate(db *gorm.DB, errors *Errors) error {
 	validation := newValidation(errors)
 
 	if validation.NotEmpty("repeat_password", registerUser.RepeatPassword) {

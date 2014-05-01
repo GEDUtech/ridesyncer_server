@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/martini-contrib/binding"
 	"time"
 )
 
@@ -14,7 +13,7 @@ type Schedule struct {
 	End     string
 }
 
-func (s Schedule) Validate(db *gorm.DB, errors *binding.Errors) error {
+func (s Schedule) Validate(db *gorm.DB, errors *Errors) error {
 	if s.UserId == 0 {
 		errors.Fields["UserId"] = "Invalid id"
 	}

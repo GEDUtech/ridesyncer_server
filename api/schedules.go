@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
 	"net/http"
 	"ridesyncer/models"
@@ -26,8 +25,8 @@ func (this *Schedules) Add(req *http.Request, authUser models.AuthUser, render r
 	schedule.Id = 0
 	schedule.UserId = authUser.Id
 
-	errors := binding.Errors{make(map[string]string), make(map[string]string)}
-	if err := schedule.Validate(this.db, &errors); err != nil {
+	errors := models.NewErrors()
+	if err := schedule.Validate(this.db, errors); err != nil {
 		render.Error(500)
 		return
 	}
