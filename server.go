@@ -59,6 +59,7 @@ func main() {
 	pages := controllers.PagesController{}
 	apiUsers := api.NewUsers(db, emailConfig)
 	apiSchedules := api.NewSchedules(db)
+	apiSyncs := api.NewSyncs(db)
 
 	// Routing
 	m.Get("/", pages.Home)
@@ -72,6 +73,10 @@ func main() {
 
 	m.Group("/api/schedules", func(r martini.Router) {
 		r.Post("/add", api.NeedsAuth(true), apiSchedules.Add)
+	})
+
+	m.Group("/api/syncs", func(r martini.Router) {
+		r.Post("/create", apiSyncs.Create)
 	})
 
 	// Start server
