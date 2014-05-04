@@ -142,7 +142,7 @@ func (this *Users) Search(res http.ResponseWriter, authUser models.AuthUser, ren
 		utils.HttpError(res, http.StatusInternalServerError)
 		return
 	}
-	render.JSON(http.StatusOK, users)
+	render.JSON(http.StatusOK, map[string]interface{}{"results": users})
 }
 
 func (this *Users) sendVerificationCode(user models.User) error {

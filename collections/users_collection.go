@@ -45,7 +45,7 @@ func FindMatches(db *gorm.DB, user models.User) ([]models.User, error) {
 	users := []models.User{}
 	usersQuery := query.Model(models.User{}).
 		Table("users AS User").
-		Select("User.id, User.username, "+distance).
+		Select("User.id, User.username, User.city, User.state, "+distance).
 		Joins("LEFT JOIN schedules AS Schedule ON (User.id = Schedule.user_id)").
 		Where("Schedule.user_id != ?", user.Id).
 		Where("SUBSTRING_INDEX(User.email, '@', -1) = ?", strings.Split(user.Email, "@")[1]).
