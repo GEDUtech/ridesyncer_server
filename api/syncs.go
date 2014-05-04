@@ -42,6 +42,8 @@ func (this *Syncs) Create(req *http.Request, render render.Render) {
 	if q := tx.Commit(); q.Error != nil {
 		tx.Rollback()
 		render.Error(500)
+		return
 	}
 
+	render.JSON(http.StatusOK, syncs)
 }
