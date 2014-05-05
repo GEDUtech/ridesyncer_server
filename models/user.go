@@ -32,10 +32,47 @@ type User struct {
 	Distance         float64 `sql:"-"`
 
 	Schedules []Schedule `sql:"-"`
+	Syncs     []Sync     `sql:"-"`
 }
 
 func (user *User) FetchSchedules(db *gorm.DB) error {
 	return db.Model(user).Related(&user.Schedules).Error
+}
+
+func (user *User) FetchSyncs(db *gorm.DB) error {
+	query := db.Table("syncs AS Sync").Select("Sync.id, Sync.weekday, Sync.created_at").
+		Joins("LEFT JOIN sync_users AS SyncUser ON (SyncUser.sync_id = Sync.id)").
+		Where("SyncUser.user_id = ?", user.Id).
+		Find(&user.Syncs)
+
+	if query.Error != nil {
+		return query.Error
+	}
+
+	ids := make([]int64, len(user.Syncs))
+	syncsMap := map[int64]*Sync{}
+	for idx, sync := range user.Syncs {
+		ids[idx] = sync.Id
+		syncsMap[sync.Id] = &user.Syncs[idx]
+	}
+
+	syncUsers := []SyncUser{}
+	query = db.Model(&SyncUser{}).Where("sync_id IN (?)", ids).Find(&syncUsers)
+	if query.Error != nil {
+		return query.Error
+	}
+
+	for _, syncUser := range syncUsers {
+		if err := db.Model(&syncUser).Select("id, username, email, email_verified, first_name, last_name, ride").Related(&syncUser.User).Error; err != nil {
+			return err
+		}
+		if err := db.Model(&syncUser.User).Related(&syncUser.User.Schedules).Error; err != nil {
+			return err
+		}
+		syncsMap[syncUser.SyncId].SyncUsers = append(syncsMap[syncUser.SyncId].SyncUsers, syncUser)
+	}
+
+	return nil
 }
 
 func (user *User) ValidateUniqueUsername(db *gorm.DB, errors *Errors) error {

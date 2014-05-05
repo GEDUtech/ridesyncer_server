@@ -65,6 +65,12 @@ func (this *Users) Login(res http.ResponseWriter, req *http.Request, render rend
 
 	if user.FetchSchedules(this.db) != nil {
 		utils.HttpError(res, http.StatusInternalServerError)
+		return
+	}
+
+	if user.FetchSyncs(this.db) != nil {
+		utils.HttpError(res, http.StatusInternalServerError)
+		return
 	}
 
 	render.JSON(http.StatusOK, user)

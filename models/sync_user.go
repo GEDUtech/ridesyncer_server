@@ -11,4 +11,6 @@ type SyncUser struct {
 	Status    int
 	Order     int
 	CreatedAt time.Time
+
+	User User `sql:"-"`
 }
