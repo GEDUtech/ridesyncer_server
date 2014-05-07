@@ -63,6 +63,10 @@ func FindMatches(db *gorm.DB, user models.User) ([]models.User, error) {
 		return nil, usersQuery.Error
 	}
 
+	if len(users) == 0 {
+		return []models.User{}, nil
+	}
+
 	userIds := []int64{}
 	usersMap := map[int64]*models.User{}
 	for idx, user := range users {
