@@ -15,7 +15,7 @@ func NewSyncs(db *gorm.DB) *Syncs {
 	return &Syncs{db}
 }
 
-func (this *Syncs) Create(req *http.Request, render render.Render) {
+func (this *Syncs) Create(req *http.Request, authUser models.AuthUser, render render.Render) {
 	syncs := []models.Sync{}
 	if decode(req, render, &syncs) != nil {
 		return
@@ -45,5 +45,10 @@ func (this *Syncs) Create(req *http.Request, render render.Render) {
 		return
 	}
 
-	render.JSON(http.StatusOK, syncs)
+	if authUser.FetchSyncs(this.db) != nil {
+		render.Error(500)
+		return
+	}
+
+	render.JSON(http.StatusOK, map[string]interface{}{"results": authUser.Syncs})
 }
