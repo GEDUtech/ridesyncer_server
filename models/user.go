@@ -3,7 +3,9 @@ package models
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"github.com/jinzhu/gorm"
+	geo "github.com/kellydunn/golang-geo"
 	mrand "math/rand"
 	"ridesyncer/auth"
 	"strconv"
@@ -33,6 +35,22 @@ type User struct {
 
 	Schedules []Schedule `sql:"-"`
 	Syncs     []Sync     `sql:"-"`
+}
+
+func (user *User) Geocode() error {
+	address := fmt.Sprintf("%s %s, %s %s", user.Address, user.City, user.State, user.Zip)
+
+	geocoder := geo.GoogleGeocoder{}
+	point, err := geocoder.Geocode(address)
+
+	if err != nil {
+		return err
+	}
+
+	user.Lat = point.Lat()
+	user.Lng = point.Lng()
+
+	return nil
 }
 
 func (user *User) FetchSchedules(db *gorm.DB) error {

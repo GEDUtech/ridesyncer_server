@@ -93,6 +93,11 @@ func (this *Users) Register(res http.ResponseWriter, req *http.Request, render r
 		return
 	}
 
+	if err := user.Geocode(); err != nil {
+		utils.HttpError(res, http.StatusInternalServerError)
+		return
+	}
+
 	if err := user.Register(this.db); err != nil {
 		utils.HttpError(res, http.StatusInternalServerError)
 		return
