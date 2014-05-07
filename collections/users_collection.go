@@ -13,6 +13,10 @@ func FindMatches(db *gorm.DB, user models.User) ([]models.User, error) {
 		return nil, err
 	}
 
+	if len(user.Schedules) == 0 {
+		return []models.User{}, nil
+	}
+
 	params := []interface{}{}
 	conditions := []string{}
 	duration := time.Duration(user.Buffer) * time.Minute
