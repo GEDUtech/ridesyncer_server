@@ -49,6 +49,10 @@ func (user *User) FetchSyncs(db *gorm.DB) error {
 		return query.Error
 	}
 
+	if len(user.Syncs) == 0 {
+		return nil
+	}
+
 	ids := make([]int64, len(user.Syncs))
 	syncsMap := map[int64]*Sync{}
 	for idx, sync := range user.Syncs {
@@ -89,6 +93,20 @@ func (user *User) ValidateUniqueUsername(db *gorm.DB, errors *Errors) error {
 	return nil
 }
 
+func (user *User) ValidateUniqueEmail(db *gorm.DB, errors *Errors) error {
+	var count int
+	query := db.Model(User{}).Where(&User{Email: user.Email}).Count(&count)
+	if query.Error != nil {
+		return query.Error
+	}
+
+	if count > 0 {
+		errors.Fields["email"] = "Email already taken"
+	}
+
+	return nil
+}
+
 func (user *User) Validate(db *gorm.DB, errors *Errors) error {
 	validation := newValidation(errors)
 
@@ -102,8 +120,11 @@ func (user *User) Validate(db *gorm.DB, errors *Errors) error {
 	validation.NotEmpty("first_name", user.FirstName)
 	validation.NotEmpty("last_name", user.LastName)
 
-	if validation.NotEmpty("email", user.Email) {
-		validation.Email("email", user.Email)
+	if validation.NotEmpty("email", user.Email) && validation.Email("email", user.Email) {
+		if err := user.ValidateUniqueEmail(db, errors); err != nil {
+			return err
+		}
+
 	}
 	validation.NotEmpty("ride", user.Ride)
 
