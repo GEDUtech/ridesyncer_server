@@ -67,6 +67,7 @@ func main() {
 	m.Group("/api/users", func(r martini.Router) {
 		r.Post("/login", apiUsers.Login)
 		r.Post("/register", binding.Form(models.RegisterUser{}), apiUsers.Register)
+		r.Post("/register_gcm", api.NeedsAuth(true), apiUsers.RegisterGcm)
 		r.Post("/verify", api.NeedsAuth(false), apiUsers.Verify)
 		r.Get("/search", api.NeedsAuth(true), apiUsers.Search)
 	})

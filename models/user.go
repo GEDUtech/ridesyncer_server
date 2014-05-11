@@ -2,6 +2,7 @@ package models
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"encoding/hex"
 	"fmt"
 	"github.com/jinzhu/gorm"
@@ -30,6 +31,7 @@ type User struct {
 	Buffer           int     `json:",omitempty"`
 	Lat              float64 `json:"-"`
 	Lng              float64 `json:"-"`
+	GcmRegid         sql.NullString
 	CreatedAt        time.Time
 	Distance         float64 `sql:"-"`
 

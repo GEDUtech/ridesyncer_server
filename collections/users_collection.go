@@ -47,7 +47,7 @@ func FindMatches(db *gorm.DB, user models.User) ([]models.User, error) {
 		user.Lat, user.Lng, user.Lat)
 
 	users := []models.User{}
-	usersQuery := query.Model(models.User{}).
+	usersQuery := query.Model(models.User{}).Debug().
 		Table("users AS User").
 		Select("User.id, User.username, User.city, User.state, "+distance).
 		Joins("LEFT JOIN schedules AS Schedule ON (User.id = Schedule.user_id)").

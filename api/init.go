@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+const (
+	GOOGLE_API_KEY = "AIzaSyAaXv0wQpVcQDo_p_KQfd8T7dndbUlx4TY"
+)
+
 func decode(req *http.Request, render render.Render, data interface{}) error {
 	decoder := json.NewDecoder(req.Body)
 

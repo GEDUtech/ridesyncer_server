@@ -121,6 +121,17 @@ func (this *Users) Register(res http.ResponseWriter, req *http.Request, render r
 	go this.sendVerificationCode(user.User)
 }
 
+func (this *Users) RegisterGcm(res http.ResponseWriter, req *http.Request, authUser models.AuthUser, render render.Render) {
+	var data struct{ GcmRegid string }
+	if decode(req, render, &data) != nil {
+		return
+	}
+
+	if this.db.Model(&authUser.User).Update("gcm_regid", data.GcmRegid).Error != nil {
+		utils.HttpError(res, http.StatusInternalServerError)
+	}
+}
+
 func (this *Users) Verify(res http.ResponseWriter, req *http.Request, authUser models.AuthUser, render render.Render) {
 	if authUser.EmailVerified {
 		utils.HttpError(res, 422)
