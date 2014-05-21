@@ -19,6 +19,13 @@ func NewSyncs(db *gorm.DB) *Syncs {
 	return &Syncs{db}
 }
 
+func (this *Syncs) Index(authUser models.AuthUser, render render.Render) {
+	if authUser.FetchSyncs(this.db) != nil {
+		render.Error(500)
+	}
+	render.JSON(200, map[string]interface{}{"results": authUser.Syncs})
+}
+
 func (this *Syncs) Create(req *http.Request, authUser models.AuthUser, render render.Render) {
 	syncs := []models.Sync{}
 	if decode(req, render, &syncs) != nil {
@@ -28,6 +35,7 @@ func (this *Syncs) Create(req *http.Request, authUser models.AuthUser, render re
 	tx := this.db.Begin()
 	userIds := utils.Set{}
 	for _, sync := range syncs {
+		sync.UserId = authUser.Id
 		if q := tx.Save(&sync); q.Error != nil {
 			tx.Rollback()
 			render.Error(500)

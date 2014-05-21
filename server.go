@@ -77,7 +77,8 @@ func main() {
 	})
 
 	m.Group("/api/syncs", func(r martini.Router) {
-		r.Post("/create", apiSyncs.Create)
+		r.Get("/index", api.NeedsAuth(true), apiSyncs.Index)
+		r.Post("/create", api.NeedsAuth(true), apiSyncs.Create)
 	})
 
 	// Start server
